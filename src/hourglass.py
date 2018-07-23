@@ -34,7 +34,7 @@ class Hourglass(gluon.nn.HybridBlock):
             self.low3_.add(Residual(in_channels=self.nFeats,out_channels=nFeats))
         
         #用反卷积代替upsampling，可以按情况试试
-        #self.up2 = gluon.nn.Conv2DTranspose(channels=self.nFeats,kernel_size=(2,2),strides=(1,1))
+        self.up2 = gluon.nn.Conv2DTranspose(channels=self.nFeats,kernel_size=(2,2),strides=(2,2))
         
     def hybrid_forward(self,F,x):
         up1 = x
@@ -56,9 +56,9 @@ class Hourglass(gluon.nn.HybridBlock):
         for i in range(self.nModules):
             low3 = self.low3_[i](low3)
         # gluon的nn里没有upsample，混合直接调用ndarray的sample
-        up2 = F.UpSampling(low3,sample_type='bilinear',scale=2)
-
-        return up1 + up2 
+        # up2 = F.UpSampling(low3,sample_type='bilinear',scale=2)
+        up2 = self.up2(low3)
+        return up1 + up2
 
 
     

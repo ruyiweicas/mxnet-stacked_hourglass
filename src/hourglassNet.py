@@ -63,6 +63,5 @@ class HourglassNet(gluon.nn.HybridBlock):
                 if i < self.nStack - 1:
                     ll_ = self.ll_[i](ll)
                     tmpOut = self.tmpOut_[i](tmpOut)
-                    x = x + ll_ + tmpOut
-            
+                    x = x + ll_ + tmpOut  
             return out
