@@ -42,26 +42,27 @@ class HourglassNet(gluon.nn.HybridBlock):
                 self.ll_.add(gluon.nn.Conv2D(channels=self.nFeats,kernel_size=1,strides=1))
                 self.tmpOut_.add(gluon.nn.Conv2D(channels=self.nFeats,kernel_size=1,strides=1))
             
-        def hybrid_forward(self,F,x):
-            x = self.conv1_(x)
-            x = self.bn1(x)
-            x = self.relu(x)
-            x = self.r1(x)
-            x = self.maxpool(x)
-            x = self.r4(x)
-            x = self.r5(x)
+    def hybrid_forward(self,F,x):
+        x = self.conv1_(x)
+        x = self.bn1(x)
+        x = self.relu(x)
+        x = self.r1(x)
+        x = self.maxpool(x)
+        x = self.r4(x)
+        x = self.r5(x)
 
-            out = []
-            for i in range(self.nStack):
-                hg = self.hourglass[i](x)
-                ll = hg
-                for j in range(self.nModules):
-                    ll = self.Residual[i*self.nModules+j](ll)
-                ll = self.lin_[i](ll)
-                tmpOut = self.tmpOut[i](ll)
-                out.append(tmpOut)
-                if i < self.nStack - 1:
-                    ll_ = self.ll_[i](ll)
-                    tmpOut = self.tmpOut_[i](tmpOut)
-                    x = x + ll_ + tmpOut  
-            return out
+        out = []
+
+        for i in range(self.nStack):
+            hg = self.hourglass[i](x)
+            ll = hg
+            for j in range(self.nModules):
+                ll = self.Residual[i*self.nModules+j](ll)
+            ll = self.lin_[i](ll)
+            tmpOut = self.tmpOut[i](ll)
+            out.append(tmpOut)
+            if i < self.nStack - 1:
+                ll_ = self.ll_[i](ll)
+                tmpOut_ = self.tmpOut_[i](tmpOut)
+                x = x + ll_ + tmpOut_
+        return out
