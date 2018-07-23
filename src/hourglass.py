@@ -12,28 +12,26 @@ class Hourglass(gluon.nn.HybridBlock):
         self.nModules = nModules
         self.nFeats = nFeats
 
-        _up1_, _low1_, _low2_, _low3_ = [], [], [], []
+        self.up1_ = gluon.nn.HybridSequential()
+        self.low1_ = gluon.nn.HybridSequential()
+        self.low2_ = gluon.nn.HybridSequential()
+        self.low3_ = gluon.nn.HybridSequential()
         
         for i in range(self.nModules):
-            _up1_.append(Residual(in_channels=self.nFeats,out_channels=self.nFeats))
-        
+            self.up1_.add(Residual(in_channels=self.nFeats,out_channels=self.nFeats))
+
         self.low1 = gluon.nn.MaxPool2D(pool_size=(2,2),strides=(2,2))
         for i in range(self.nModules):
-            _low1_.append(Residual(in_channels=self.nFeats,out_channels=self.nFeats))
+            self.low1_.add(Residual(in_channels=self.nFeats,out_channels=self.nFeats))
         
         if self.n > 1:
             self.low2 = Hourglass(n=n-1,nModules=self.nModules,nFeats = self.nFeats)
         else:
             for i in range(self.nModules):
-                _low2_.append(Residual(in_channels=nFeats,out_channels=nFeats))
-            self.low2_ = _low2_
+                self.low2_.add(Residual(in_channels=nFeats,out_channels=nFeats))
 
         for i in range(self.nModules):
-            _low3_.append(Residual(in_channels=self.nFeats,out_channels=nFeats))
-
-        self.up1_ = _up1_
-        self.low1_ = _low1_
-        self.low3_ = _low3_
+            self.low3_.add(Residual(in_channels=self.nFeats,out_channels=nFeats))
         
         #用反卷积代替upsampling，可以按情况试试
         #self.up2 = gluon.nn.Conv2DTranspose(channels=self.nFeats,kernel_size=(2,2),strides=(1,1))
@@ -58,7 +56,7 @@ class Hourglass(gluon.nn.HybridBlock):
         for i in range(self.nModules):
             low3 = self.low3_[i](low3)
         # gluon的nn里没有upsample，混合直接调用ndarray的sample
-        up2 = F.UpSampling(low3,scale=2)
+        up2 = F.UpSampling(low3,sample_type='bilinear',scale=2)
 
         return up1 + up2 
 

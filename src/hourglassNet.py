@@ -15,38 +15,37 @@ class HourglassNet(gluon.nn.HybridBlock):
 
         self.conv1_ = gluon.nn.Conv2D(channels=64,kernel_size=(7,7),strides=(2,2),padding=(3,3))
         self.bn1 = gluon.nn.BatchNorm()
+        self.relu = gluon.nn.LeakyReLU(alpha=0)
         self.r1 = Residual(in_channels=64,out_channels=128)
         self.maxpool = gluon.nn.MaxPool2D(pool_size=(2,2),strides=(2,2))
         self.r4 = Residual(in_channels=128,out_channels=128)
         self.r5 = Residual(in_channels=128,out_channels=self.nFeats)
 
-        _hourglass, _Residual, _lin_, _tmpOut, _ll_, _tmpOut_, _reg_ = [], [], [], [], [], [], []
+        self.hourglass = gluon.nn.HybridSequential()
+        self.Residual = gluon.nn.HybridSequential()
+        self.lin_ = gluon.nn.HybridSequential()
+        self.tmpOut = gluon.nn.HybridSequential()
+        self.ll_ = gluon.nn.HybridSequential()
+        self.tmpOut_ = gluon.nn.HybridSequential()
 
         for i in range(self.nStack):
-            _hourglass.append(Hourglass(4,self.nModules,self.nFeats))
+            self.hourglass.add(Hourglass(4,self.nModules,self.nFeats))
             for j in range(self.nModules):
-                _Residual.append(Residual(in_channels=self.nFeats,out_channels=self.nFeats))
+                self.Residual.add(Residual(in_channels=self.nFeats,out_channels=self.nFeats))
             lin = gluon.nn.HybridSequential()
             lin.add(gluon.nn.Conv2D(channels=self.nFeats,kernel_size=1,strides=1))
             lin.add(gluon.nn.BatchNorm())
             lin.add(gluon.nn.LeakyReLU(alpha=0))
-            _lin_.append(lin)
-            _tmpOut.append(gluon.nn.Conv2D(channels=self.out_num,kernel_size=1,strides=1))
+            self.lin_.add(lin)
+            self.tmpOut.add(gluon.nn.Conv2D(channels=self.out_num,kernel_size=1,strides=1))
             if i < self.nStack - 1:
-                _ll_.append(gluon.nn.Conv2D(channels=self.nFeats,kernel_size=1,strides=1))
-                _tmpOut_.append(gluon.nn.Conv2D(channels=self.nFeats,kernel_size=1,strides=1))
-
-            self.hourglass = _hourglass
-            self.Residual = _Residual
-            self.lin_ = _lin_
-            self.tmpOut = _tmpOut
-            self.ll_ = _ll_
-            self.tmpOut_ = _tmpOut_
-
+                self.ll_.add(gluon.nn.Conv2D(channels=self.nFeats,kernel_size=1,strides=1))
+                self.tmpOut_.add(gluon.nn.Conv2D(channels=self.nFeats,kernel_size=1,strides=1))
+            
         def hybrid_forward(self,F,x):
             x = self.conv1_(x)
             x = self.bn1(x)
-            x = F.relu(x)
+            x = self.relu(x)
             x = self.r1(x)
             x = self.maxpool(x)
             x = self.r4(x)
