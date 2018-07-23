@@ -66,3 +66,4 @@ class HourglassNet(gluon.nn.HybridBlock):
                 tmpOut_ = self.tmpOut_[i](tmpOut)
                 x = x + ll_ + tmpOut_
         return out
+        
