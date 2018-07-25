@@ -1,20 +1,25 @@
 import os
 import time
 import datetime
-import mxnet as mxnet
+import mxnet as mx
 import mxnet.gluon as gluon
 
-import torch
-import torch.utils.data
 import opts
 import ref
-from models.hg_3d import HourglassNet3D
+from hourglassNet import HourglassNet
 from utils.utils import adjust_learning_rate
 from datasets.fusion import Fusion
 from datasets.h36m import H36M
 from datasets.mpii import MPII
 from utils.logger import Logger
 from train import train, val
+
+from model import getModel, saveModel
+
+from utils.logger import Logger
+
+
+import scipy.io as sio
 
 def main():
     # os.environ["CUDA_VISIBLE_DEVICES"] = "4"
@@ -23,63 +28,39 @@ def main():
     logger = Logger(opt.saveDir + '/logs_{}'.format(now.isoformat()))
 
     if opt.loadModel != 'none':
-        model = torch.load(opt.loadModel).cuda()
-        model = gl
+        sym, arg_params, aux_params = mx.model.load_checkpoint("hourglass", 60)
+        model = mx.mod.Module(symbol=sym, context=mx.gpu(), data_names=["input_var"], label_names=["target_var"])
+        model.bind(for_training=True, data_shapes=[("input_var", (opt.trainBatch,3,ref.inputRes,ref.inputRes))])
+        model.set_params(arg_params,aux_params)
     else:
-        model = HourglassNet3D(opt.nStack, opt.nModules, opt.nFeats, opt.nRegModules).cuda()
+        model = HourglassNet(nModules=2,nFeats=256,nStack=2,out_num=256)
+        model.collect_params().initialize(mx.init.Xavier())
 
-    criterion = torch.nn.MSELoss().cuda()
-    optimizer = torch.optim.RMSprop(model.parameters(), opt.LR,
-                                  alpha = ref.alpha,
-                                  eps = ref.epsilon,
-                                  weight_decay = ref.weightDecay,
-                                  momentum = ref.momentum)
+    # heatmap的计算是直接求均方误差
+    mseloss = gluon.loss.L2Loss()
 
-    if opt.ratio3D < ref.eps:
-        val_loader = torch.utils.data.DataLoader(
-            MPII(opt, 'val', returnMeta = True),
-            batch_size = 1,
-            shuffle = False,
-            num_workers = int(ref.nThreads)
-        )
-    else:
-        val_loader = torch.utils.data.DataLoader(
-            H36M(opt, 'val'),
-            batch_size = 1,
-            shuffle = False,
-            num_workers = int(ref.nThreads)
-        )
+    val_dataset = gluon.data.Dataset(MPII(opt,'val',returnMeta=True))
+    train_dataset = gluon.data.Dataset(MPII(opt,'train',returnMeta=True))
 
-
-    if opt.test:
-        val(0, opt, val_loader, model, criterion)
-        return
-
-    train_loader = torch.utils.data.DataLoader(
-        Fusion(opt, 'train'),
-        batch_size = opt.trainBatch,
-        shuffle = True if opt.DEBUG == 0 else False,
+    val_loader = gluon.data.DataLoader(
+        val_dataset,
+        batch_size = 1,
+        shuffle = False,
         num_workers = int(ref.nThreads)
     )
 
+    train_loader = gluon.data.DataLoader(
+        train_dataset, 
+        batch_size = opt.trainBatch, 
+        shuffle = True if opt.DEBUG == 0 else False,
+        num_workers = int(ref.nThreads)
+    )
+    trainer = gluon.Trainer(model.collect_params(),'rmsprop',{'learning_rate': 2e-5,
+                                                                'gamma1': 0.99,
+                                                                'gamma2': 0.0,
+    
+                                                                'epslion': 1e-8})
+    # train，调用train方法
     for epoch in range(1, opt.nEpochs + 1):
-        loss_train, acc_train, mpjpe_train, loss3d_train = train(epoch, opt, train_loader, model, criterion, optimizer)
-        logger.scalar_summary('loss_train', loss_train, epoch)
-        logger.scalar_summary('acc_train', acc_train, epoch)
-        logger.scalar_summary('mpjpe_train', mpjpe_train, epoch)
-        logger.scalar_summary('loss3d_train', loss3d_train, epoch)
-        if epoch % opt.valIntervals == 0:
-            loss_val, acc_val, mpjpe_val, loss3d_val = val(epoch, opt, val_loader, model, criterion)
-            logger.scalar_summary('loss_val', loss_val, epoch)
-            logger.scalar_summary('acc_val', acc_val, epoch)
-            logger.scalar_summary('mpjpe_val', mpjpe_val, epoch)
-            logger.scalar_summary('loss3d_val', loss3d_val, epoch)
-            torch.save(model, os.path.join(opt.saveDir, 'model_{}.pth'.format(epoch)))
-            logger.write('{:8f} {:8f} {:8f} {:8f} {:8f} {:8f} {:8f} {:8f} \n'.format(loss_train, acc_train, mpjpe_train, loss3d_train, loss_val, acc_val, mpjpe_val, loss3d_val))
-        else:
-            logger.write('{:8f} {:8f} {:8f} {:8f} \n'.format(loss_train, acc_train, mpjpe_train, loss3d_train))
-        adjust_learning_rate(optimizer, epoch, opt.dropLR, opt.LR)
-        logger.close()
-
-if __name__ == '__main__':
-  main()
+        for i, (input, target, meta) in enumerate(train_loader):
+            
