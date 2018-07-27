@@ -52,7 +52,7 @@ def main():
     trainer = gluon.Trainer(model.collect_params(),'rmsprop',{'learning_rate': 2e-5,
                                                                 'gamma1': 0.99,
                                                                 'gamma2': 0.0,
-                                                           'epslion': 1e-8})
+                                                                'epslion': 1e-8})
     loss = 0
     Loss, Acc = AverageMeter(), AverageMeter()
     preds = []
