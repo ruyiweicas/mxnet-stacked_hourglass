@@ -1,4 +1,8 @@
 # mxnet version stacked hourglass network
 
-This repo is made for mxnet-gluon version stacked hourglass network. Will be done in this two weeks.
-Now I have defined the network.Data iter has not been written.I will done this work during this week.
+## Network
+This repo is a mxnet-gluon version of stacked hourglass network.Stacked hourglass network usually used for backbone for 
+pose estimation architecture.
+
+## Dataset
+Mpii human pose dataset.
