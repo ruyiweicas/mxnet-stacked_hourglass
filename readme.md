@@ -6,3 +6,6 @@ pose estimation architecture.
 
 ## Dataset
 Mpii human pose dataset.
+
+## Parameter Config
+train parameter can be set in opt.py and ref.py
