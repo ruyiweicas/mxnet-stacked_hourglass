@@ -59,6 +59,4 @@ class Hourglass(gluon.nn.HybridBlock):
         # up2 = F.UpSampling(low3,sample_type='bilinear',scale=2)
         up2 = self.up2(low3)
         return up1 + up2
-
-
-    
+        

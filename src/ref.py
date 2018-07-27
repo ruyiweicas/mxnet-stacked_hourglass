@@ -27,8 +27,7 @@ shiftPX = 50
 disturb = 10
 
 dataDir = '../data'
-mpiiImgDir = '/home/raw_datasets/pose_dataset/images/'
-h36mImgDir = '/home/chr/datasets/hg-3d/images/'
+mpiiImgDir = '/to/your/path'
 expDir = '../exp'
 
 nThreads = 4

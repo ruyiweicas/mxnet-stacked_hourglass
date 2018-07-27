@@ -1,6 +1,6 @@
 import mxnet as mx
 import mxnet.gluon as gluon
-import torch.utils.data as data
+
 import numpy as np
 import src.ref as ref
 import torch
@@ -9,22 +9,24 @@ import cv2
 from src.utils.utils import Rnd, Flip, ShuffleLR
 from src.utils.img import Crop, DrawGaussian, Transform
 
-class MPII(data.Dataset):
-    def __init__(self, opt, split, returnMeta = False):
-        print('==> initializing 2D {} data.').format(split)
+
+class MPII(gluon.data.Dataset):
+    def __init__(self, opt, split):
+        print
+        '==> initializing 2D {} data.'.format(split)
         annot = {}
-        tags = ['imgname','part','center','scale']
+        tags = ['imgname', 'part', 'center', 'scale']
         f = File('{}/mpii/annot/{}.h5'.format(ref.dataDir, split), 'r')
         for tag in tags:
-          annot[tag] = np.asarray(f[tag]).copy()
+            annot[tag] = np.asarray(f[tag]).copy()
         f.close()
 
-        print('Loaded 2D {} {} samples').format(split, len(annot['scale']))
+        print
+        'Loaded 2D {} {} samples'.format(split, len(annot['scale']))
 
         self.split = split
         self.opt = opt
         self.annot = annot
-        self.returnMeta = returnMeta
 
     def LoadImage(self, index):
         path = '{}/{}'.format(ref.mpiiImgDir, self.annot['imgname'][index])
@@ -48,33 +50,22 @@ class MPII(data.Dataset):
             r = 0 if np.random.random() < 0.6 else Rnd(ref.rotate)
         inp = Crop(img, c, s, r, ref.inputRes) / 256.
         out = np.zeros((ref.nJoints, ref.outputRes, ref.outputRes))
-        Reg = np.zeros((ref.nJoints, 3))
         for i in range(ref.nJoints):
             if pts[i][0] > 1:
                 pt = Transform(pts[i], c, s, r, ref.outputRes)
                 out[i] = DrawGaussian(out[i], pt, ref.hmGauss)
-                Reg[i, :2] = pt
-                Reg[i, 2] = 1
         if self.split == 'train':
             if np.random.random() < 0.5:
                 inp = Flip(inp)
                 out = ShuffleLR(Flip(out))
-                Reg[:, 1] = Reg[:, 1] * -1
-                Reg = ShuffleLR(Reg)
-            #print 'before', inp[0].max(), inp[0].mean()
             inp[0] = np.clip(inp[0] * (np.random.random() * (0.4) + 0.6), 0, 1)
             inp[1] = np.clip(inp[1] * (np.random.random() * (0.4) + 0.6), 0, 1)
             inp[2] = np.clip(inp[2] * (np.random.random() * (0.4) + 0.6), 0, 1)
-            #print 'after', inp[0].max(), inp[0].mean()
-            
-        # inp->裁剪变换后的原图，变换给dataloader用
-        # out->heatmap,reg->depth信息,返回一个ndarray
-        inp = mx.nd.array(inp)
-        if self.returnMeta:
-            return inp, out, Reg, np.zeros((ref.nJoints, 3))
+            meta = np.zeros(1)
         else:
-            return inp, out
+            meta = {'index': index, 'center': c, 'scale': s, 'rotate': r}
+
+        return inp, out, meta
 
     def __len__(self):
         return len(self.annot['scale'])
-

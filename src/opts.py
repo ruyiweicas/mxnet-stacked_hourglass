@@ -7,7 +7,7 @@ import src.ref as ref
 class opts():
     def __init__(self):
         self.parser = argparse.ArgumentParser()
-        
+
     def init(self):
         # 参数按照stack hourglass原repo设置，trainBatch为6的时候显存占用不高，大概2g，可以继续往上调
         # 学习率和epoch按照原文设置，但是epoch有人设置在180，之后再试
@@ -29,7 +29,8 @@ class opts():
         self.parser.add_argument('-valIntervals', type = int, default = 5, help = '#valid intervel')
         self.parser.add_argument('-trainBatch', type = int, default = 6, help = 'Mini-batch size')
         self.parser.add_argument('-arch', default = 'hg', help = 'hg | hg-reg | resnet-xxx')
-        
+        self.parser.add_argument('-snapshot', default=5, type=int, help='snapshot cycle for save model')
+
     def parse(self):
         self.init()    
         opt = self.parser.parse_args()
