@@ -5,6 +5,8 @@ This repo is a mxnet-gluon version of stacked hourglass network.Stacked hourglas
 in human pose estimation.
 
 ## Requirements
+The code has been tested with CUDA 8.0 and ubuntu 16.04.
+
 python2.7\
 mxnet-cu80==1.3\
 progress\
@@ -30,3 +32,6 @@ to train your model.You can use some flags to change my default.Such as
 >python main.py -nEpochs 120
 
 to set epochs.You can know more details in opts.py. 
+
+## Thanks
+Thanks Alejandro Newell's torch version of stacked hourglass network code.
