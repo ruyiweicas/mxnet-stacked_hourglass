@@ -7,11 +7,11 @@ in human pose estimation.
 ## Requirements
 The code has been tested with CUDA 8.0 and ubuntu 16.04.
 
-python2.7\
-mxnet-cu80==1.3\
-progress\
-opencv-python\
-h5py
+- python2.7
+- mxnet-cu80==1.3
+- progress
+- opencv-python
+- h5py
 
 If you use python3,there has some bugs in decode path of images.The info is in mpii.loadimage.When using python3,you can
 write a function to convert the path loaded from .h5 from illegal to legal.
