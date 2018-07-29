@@ -2,8 +2,8 @@
 import mxnet as mx
 import mxnet.gluon as gluon
 
-from residual import Residual
-from hourglass import Hourglass
+from src.residual import Residual
+from src.hourglass import Hourglass
 
 class HourglassNet(gluon.nn.HybridBlock):
     def __init__(self,nStack,nModules,nFeats,out_num):

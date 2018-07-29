@@ -27,7 +27,7 @@ class opts():
         self.parser.add_argument('-dropLR', type = int, default = 1000000, help = 'drop LR')
         self.parser.add_argument('-nEpochs', type = int, default = 100, help = '#training epochs')
         self.parser.add_argument('-valIntervals', type = int, default = 5, help = '#valid intervel')
-        self.parser.add_argument('-trainBatch', type = int, default = 6, help = 'Mini-batch size')
+        self.parser.add_argument('-trainBatch', type = int, default = 32, help = 'Mini-batch size')
         self.parser.add_argument('-arch', default = 'hg', help = 'hg | hg-reg | resnet-xxx')
         self.parser.add_argument('-snapshot', default=5, type=int, help='snapshot cycle for save model')
 

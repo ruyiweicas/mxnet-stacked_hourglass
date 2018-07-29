@@ -1,6 +1,6 @@
 import numpy as np
 import src.ref as ref
-from .img import Transform
+from src.utils.img import Transform
 
 def getPreds(hm):
     assert len(hm.shape) == 4, 'Input must be a 4-D tensor'

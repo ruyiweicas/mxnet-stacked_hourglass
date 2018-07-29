@@ -3,7 +3,7 @@ import mxnet as mx
 import mxnet.gluon as gluon
 import os
 import time
-from residual import Residual
+from src.residual import Residual
 
 class Hourglass(gluon.nn.HybridBlock):
     def __init__(self,n,nModules,nFeats):

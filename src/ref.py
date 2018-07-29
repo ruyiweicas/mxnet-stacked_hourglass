@@ -26,8 +26,8 @@ hmGaussInp = 20
 shiftPX = 50
 disturb = 10
 
-dataDir = '../data'
-mpiiImgDir = '/to/your/path'
+dataDir = './data'
+mpiiImgDir = 'mpii dataset path'
 expDir = '../exp'
 
 nThreads = 4
