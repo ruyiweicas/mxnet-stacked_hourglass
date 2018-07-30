@@ -35,4 +35,4 @@ to train your model. You can use some flags to change my default. Such as
 to set epochs. You can know more details in opts.py. 
 
 ## Thanks
-Thanks Alejandro Newell's torch version of stacked hourglass network code.
+Thanks for Alejandro Newell's torch version of stacked hourglass network code.
