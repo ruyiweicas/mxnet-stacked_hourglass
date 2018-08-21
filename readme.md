@@ -1,4 +1,4 @@
-# mxnet version stacked hourglass network
+# Mxnet version stacked hourglass network
 
 ## Network
 This repo is a mxnet-gluon version of stacked hourglass network. Stacked hourglass network is widelt used
